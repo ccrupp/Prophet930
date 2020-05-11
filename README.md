@@ -9,4 +9,4 @@ Password: 057616
 * **Jeff**: Research availability of data sets
 
 <br>
-### My personal favorite [Markdown Editor](https://jbt.github.io/markdown-editor/)
+### My personal favorite Markdown Editor <br> <https://jbt.github.io/markdown-editor/>
