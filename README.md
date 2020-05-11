@@ -8,6 +8,11 @@ Password: 057616
 * **Matt**: Figure out data to analyze
 * **Jeff**: Research availability of data sets
 
+### Branches:
+* **Vis-Dev**: Visualization Development
+* **Model-Dev**: Model Development
+* **Data**: Data Collection
+
 <br>
 My personal favorite Markdown Editor
 https://jbt.github.io/markdown-editor/
