@@ -125,7 +125,15 @@ class Stock():
   
   def WEEKLY_ADJUSTED(symbol, outputsize = 'compact'):
     url = url_builder.build('TIME_SERIES_WEEKLY_ADJUSTED', symbol, outputsize)
-    return Stock._no_interval(url, 'WEEKLY', 'Weekly Adjusted Time Series')
+    return Stock._no_interval(url, 'WEEKLY ADJUSTED', 'Weekly Adjusted Time Series')
+  
+  def MONTHLY(symbol, outputsize = 'compact'):
+    url = url_builder.build('TIME_SERIES_MONTHLY', symbol, outputsize)
+    return Stock._no_interval(url, 'MONTHLY', 'Monthly Time Series')
+  
+  def MONTHLY_ADJUSTED(symbol, outputsize = 'compact'):
+    url = url_builder.build('TIME_SERIES_MONTHLY_ADJUSTED', symbol, outputsize)
+    return Stock._no_interval(url, 'MONTHLY ADJUSTED', 'Monthly Adjusted Time Series')
   
   def _dict(self):
     interval_list = []
@@ -356,5 +364,7 @@ class Stock_Interval():
 a = Stock.INTRADAY('IBM', '5min')
 #b = Stock.DAILY('IBM')
 #c = Stock.DAILY_ADJUSTED('IBM')
-d = Stock.WEEKLY('IBM')
-e = Stock.WEEKLY_ADJUSTED('IBM')
+#d = Stock.WEEKLY('IBM')
+#e = Stock.WEEKLY_ADJUSTED('IBM')
+f = Stock.MONTHLY('IBM')
+g = Stock.MONTHLY_ADJUSTED('IBM')
