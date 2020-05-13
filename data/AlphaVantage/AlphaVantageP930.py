@@ -96,6 +96,8 @@ class Stock():
     if data == None:
       return stock
     
+    #print(data)
+    
     stock._ticker = data['Meta Data']['2. Symbol']
     
     stock._type = type
@@ -113,7 +115,17 @@ class Stock():
     url = url_builder.build('TIME_SERIES_DAILY', symbol, outputsize)
     return Stock._no_interval(url, 'DAILY', 'Time Series (Daily)')
     
+  def DAILY_ADJUSTED(symbol, outputsize = 'compact'):
+    url = url_builder.build('TIME_SERIES_DAILY_ADJUSTED', symbol, outputsize)
+    return Stock._no_interval(url, 'DAILY_ADJUSTED', 'Time Series (Daily)')
   
+  def WEEKLY(symbol, outputsize = 'compact'):
+    url = url_builder.build('TIME_SERIES_WEEKLY', symbol, outputsize)
+    return Stock._no_interval(url, 'WEEKLY', 'Weekly Time Series')
+  
+  def WEEKLY_ADJUSTED(symbol, outputsize = 'compact'):
+    url = url_builder.build('TIME_SERIES_WEEKLY_ADJUSTED', symbol, outputsize)
+    return Stock._no_interval(url, 'WEEKLY', 'Weekly Adjusted Time Series')
   
   def _dict(self):
     interval_list = []
@@ -208,6 +220,16 @@ class Stock():
   def close(self, index):
     return self._interval_data[index].close
   
+  def get_closes_adj(self):
+    close_list = []
+    for interval in self._interval_data:
+      close_list += [interval.close_adj]
+    return close_list
+  closes_adj = property(get_closes_adj)
+  
+  def close_adj(self, index):
+    return self._interval_data[index].close_adj
+  
   def get_volumes(self):
     volume_list = []
     for interval in self._interval_data:
@@ -217,6 +239,26 @@ class Stock():
   
   def volume(self, index):
     return self._interval_data[index].volume
+  
+  def get_dividends(self):
+    dividend_list = []
+    for interval in self._interval_data:
+      dividend_list += [interval.dividend]
+    return dividend_list
+  dividends = property(get_dividends)
+  
+  def dividend(self, index):
+    return self._interval_data[index].dividend
+  
+  def get_split_coefs(self):
+    split_coef_list = []
+    for interval in self._interval_data:
+      split_coef_list += [interval.split_coef]
+    return split_coef_list
+  split_coefs = property(get_split_coefs)
+  
+  def split_coef(self, index):
+    return self.interval_data[index].split_coef
   
   def get_opens_closes(self):
     oc_list = []
@@ -248,7 +290,10 @@ class Stock_Interval():
     dict['high'] = self._high,
     dict['low'] = self._low,
     dict['close'] = self._close,
+    dict['close_adj'] = self._close_adj
     dict['volume'] = self._volume
+    dict['dividend'] = self._dividend
+    dict['split_coef'] = self._split_coef
     return dict
   
   
@@ -258,7 +303,19 @@ class Stock_Interval():
     self._high = data['2. high']
     self._low = data['3. low']
     self._close = data['4. close']
-    self._volume = data['5. volume']
+    
+    try:
+      self._volume = data['5. volume']
+      self._close_adj = None
+    except:
+      self._close_adj = data['5. adjusted close']
+      self._volume = data['6. volume']
+      self._dividend = data['7. dividend amount']
+    
+    try:
+      self._split_coef = data['8. split coefficient']
+    except:
+      self._split_coef = None
     
   def get_key(self):
     return self._key
@@ -280,9 +337,24 @@ class Stock_Interval():
     return float(self._close)
   close = property(get_close)  
     
+  def get_close_adj(self):
+    return float(self._close_adj)
+  close_adj = property(get_close_adj)
+    
   def get_volume(self):
     return int(self._volume)
   volume = property(get_volume)
   
+  def get_dividend(self):
+    return float(self._dividend)
+  dividend = property(get_dividend)
+  
+  def get_split_coef(self):
+    return float(self._split_coef)
+  split_coef = property(get_split_coef)
+  
 a = Stock.INTRADAY('IBM', '5min')
-b = Stock.DAILY('IBM', 'full')
+#b = Stock.DAILY('IBM')
+#c = Stock.DAILY_ADJUSTED('IBM')
+d = Stock.WEEKLY('IBM')
+e = Stock.WEEKLY_ADJUSTED('IBM')
