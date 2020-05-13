@@ -3,23 +3,30 @@ pp = pprint.PrettyPrinter(indent = 4)
 print = pp.pprint
 
 import requests, collections
-url = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=0GGIM0L0U42EVGVN'
+#url = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=5min&apikey=0GGIM0L0U42EVGVN'
 
-data = None
-def _importData():
-  _data = requests.get(url).json()
-  print('Data imported successfully')
-  return _data
+#data = None
+
+
+class url_builder():
+  header = 'https://www.alphavantage.co/query?'
+  apikey = '0GGIM0L0U42EVGVN'
   
-print('Importing data...')
-try:
-  data = _importData()
-except:
-  print('Error importing data. Trying again...')
-  data = _importData()
-
+  def build(function, symbol, outputsize, interval = None):
+    url = url_builder.header
+    url += 'function=' + function
+    url += '&symbol=' + symbol
     
-class stock():
+    if interval:
+      url += '&interval=' + interval
+    
+    url += '&outputsize=' + outputsize
+    url += '&apikey=' + url_builder.apikey
+    
+    return url
+  
+  
+class Stock():
   def __repr__(self):
     return self.__str__()
   
@@ -28,6 +35,7 @@ class stock():
     #return str(self.__dict__)
     dict = collections.OrderedDict()
     dict['ticker'] = self._ticker
+    dict['type'] = self._type
     dict['interval'] = self._interval
     dict['length'] = self._length
     dict['interval_data']= "DATA LIST"
@@ -37,21 +45,76 @@ class stock():
     
   def __init__(self):
     self._ticker = None
+    self._type = None
     self._interval = None
     self._interval_data = []
     self._length = 0
   
-  def Intraday(self, data):
-    self._ticker = data['Meta Data']['2. Symbol']
-    self._interval = data['Meta Data']['4. Interval']
-    _intervals_key = 'Time Series (' + self._interval + ')'
+  def _importData(url):
+    _data = None
+    try:
+      _data = requests.get(url).json()
+      print('Data imported successfully')
+    except:
+      print('Unable to import data')
+    return _data
+  
+  
+  def INTRADAY(symbol, interval, outputsize = 'compact'):
+    stock = Stock()
+  
+    #url = url_builder.INTRADAY(symbol, interval, outputsize)
+  
+    url = url_builder.build(
+        'TIME_SERIES_INTRADAY',
+        symbol,
+        outputsize,
+        interval
+    )
+  
+    data = Stock._importData(url)
+    if data == None:
+      return stock
+      
+    stock._ticker = data['Meta Data']['2. Symbol']
+    stock._type = 'INTRADAY'
+    stock._interval = data['Meta Data']['4. Interval']
+    _intervals_key = 'Time Series (' + stock._interval + ')'
     
     for key in list(data[_intervals_key].keys()):
       interval_data = data[_intervals_key][key]
-      self._interval_data = [stock_interval(key, interval_data)] + self._interval_data
+      stock._interval_data = [Stock_Interval(key, interval_data)] + stock._interval_data
       
-    self._length = len(self._interval_data)
+    stock._length = len(stock._interval_data)
+    
+    return stock
 
+  def _no_interval(url, type, intervals_key):
+    stock = Stock()
+         
+    data = Stock._importData(url)
+    if data == None:
+      return stock
+    
+    stock._ticker = data['Meta Data']['2. Symbol']
+    
+    stock._type = type
+    
+    
+    for key in list(data[intervals_key].keys()):
+      interval_data = data[intervals_key][key]
+      stock._interval_data = [Stock_Interval(key, interval_data)] + stock._interval_data
+    
+    stock._length = len(stock._interval_data)
+    
+    return stock
+
+  def DAILY(symbol, outputsize = 'compact'):
+    url = url_builder.build('TIME_SERIES_DAILY', symbol, outputsize)
+    return Stock._no_interval(url, 'DAILY', 'Time Series (Daily)')
+    
+  
+  
   def _dict(self):
     interval_list = []
     for interval in self.intervals:
@@ -61,6 +124,10 @@ class stock():
   def get_ticker(self):
     return self._ticker
   ticker = property(get_ticker)
+  
+  def get_type(self):
+    return self._type
+  type = property(get_type)
   
   def get_interval(self):
     return self._interval
@@ -84,12 +151,18 @@ class stock():
     return key_list
   keys = property(get_keys)
   
+  def key(self, index):
+    return self._interval_data[index].key
+  
   def get_opens(self):
     open_list = []
     for interval in self._interval_data:
       open_list += [interval.open]
     return open_list
   opens = property(get_opens)
+  
+  def open(self, index):
+    return self._interval_data[index].open
 
   def get_highs(self):
     high_list = []
@@ -105,6 +178,9 @@ class stock():
     return high_list
   highs2 = property(get_highs2)
   
+  def high(self, index):
+    return self._interval_data[index].high
+  
   def get_lows(self):
     low_list = []
     for interval in self._interval_data:
@@ -119,6 +195,9 @@ class stock():
     return low_list
   lows2 = property(get_lows2)
   
+  def low(self, index):
+    return self._interval_data[index].low
+  
   def get_closes(self):
     close_list = []
     for interval in self._interval_data:
@@ -126,12 +205,18 @@ class stock():
     return close_list
   closes = property(get_closes)
   
+  def close(self, index):
+    return self._interval_data[index].close
+  
   def get_volumes(self):
     volume_list = []
     for interval in self._interval_data:
       volume_list += [interval.volume]
     return volume_list
   volumes = property(get_volumes)
+  
+  def volume(self, index):
+    return self._interval_data[index].volume
   
   def get_opens_closes(self):
     oc_list = []
@@ -154,7 +239,7 @@ class stock():
     return index_list
   index_double = property(get_index_double)
 
-class stock_interval():
+class Stock_Interval():
   
   def dict(self):
     dict = collections.OrderedDict()
@@ -199,7 +284,5 @@ class stock_interval():
     return int(self._volume)
   volume = property(get_volume)
   
-  
-a = stock()
-a.Intraday(data)
-a
+a = Stock.INTRADAY('IBM', '5min')
+b = Stock.DAILY('IBM', 'full')
