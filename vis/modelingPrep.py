@@ -1,9 +1,15 @@
 """
 Created By: Carson Rupp
 5-13-2020
+
+Summary:
 This script uses the API from financialmodelingprep, it is good for comparing
 multiple different stocks on one graph, can also be used just for one stock.
 Seems to be geared towards long term analysis because it is incremented by day.
+
+Issues:
+If the stock was not publicly traded at the start date, it will not show
+on the plot
 """
 import requests
 import pandas as pd
